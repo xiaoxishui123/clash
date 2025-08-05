@@ -3,7 +3,7 @@ allow-lan: true
 bind-address: '*'
 mode: global
 log-level: info
-external-controller: '127.0.0.1:9919'
+external-controller: '127.0.0.1:5000'
 dns:
     enable: true
     ipv6: false

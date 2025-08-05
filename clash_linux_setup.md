@@ -53,9 +53,9 @@ mv /home/clash /home/clash/clash
   ```yaml
   mode: global
   ```
-- 修改 Dashboard 控制端口，避免冲突（如 9919）：
+- 修改 Dashboard 控制端口，避免冲突（如 5000）：
   ```yaml
-  external-controller: '127.0.0.1:9919'
+  external-controller: '127.0.0.1:5000'
   ```
 
 ---
@@ -84,7 +84,7 @@ nohup ./clash -d . > clash.log 2>&1 &
   ```
   inbound create success inbound=mixed addr=:7890 network=tcp
   inbound create success inbound=mixed addr=:7890 network=udp
-  [API] listening addr=127.0.0.1:9919
+  [API] listening addr=127.0.0.1:5000
   ```
 
 ---
@@ -105,15 +105,15 @@ curl cip.cc
 
 1. 查看所有代理组和节点：
    ```bash
-   curl -X GET "http://127.0.0.1:9919/proxies"
+   curl -X GET "http://127.0.0.1:5000/proxies"
    ```
 2. 切换 GLOBAL 组到 EEVPN：
    ```bash
-   curl -X PUT "http://127.0.0.1:9919/proxies/GLOBAL" -H "Content-Type: application/json" -d '{"name":"EEVPN"}'
+   curl -X PUT "http://127.0.0.1:5000/proxies/GLOBAL" -H "Content-Type: application/json" -d '{"name":"EEVPN"}'
    ```
 3. 切换 EEVPN 组到指定节点（如"香港 02D7"）：
    ```bash
-   curl -X PUT "http://127.0.0.1:9919/proxies/EEVPN" -H "Content-Type: application/json" -d '{"name":"香港 02D7"}'
+   curl -X PUT "http://127.0.0.1:5000/proxies/EEVPN" -H "Content-Type: application/json" -d '{"name":"香港 02D7"}'
    ```
 
 ---
@@ -122,11 +122,11 @@ curl cip.cc
 
 - 用 SSH 端口转发访问 Dashboard：
   ```bash
-  ssh -L 9919:127.0.0.1:9919 root@你的服务器IP
+  ssh -L 5000:127.0.0.1:5000 root@你的服务器IP
   ```
 - 本地浏览器访问：
   ```
-  http://127.0.0.1:9919
+  http://127.0.0.1:5000
   ```
 - 如需更美观的前端，可用 [yacd](https://github.com/haishanh/yacd) 等开源 Dashboard。
 
@@ -182,7 +182,11 @@ curl cip.cc
 
 ### 端口问题
 - **7890 端口冲突**：用 `lsof -i:7890` 查找并杀死占用进程，确保 Clash 独占监听。
-- **Dashboard 端口冲突**：修改 `external-controller` 端口，避免与其他服务冲突。
+- **Dashboard 端口冲突**：
+  - 默认9919端口可能与dify-on-wechat等服务冲突
+  - 9001端口可能与CapCutAPI服务冲突  
+  - 建议使用5000等空闲端口，修改 `external-controller` 配置
+  - 检查端口占用：`lsof -i:端口号`
 
 ### 服务问题
 - **节点切换无效**：确认节点 alive 状态，尝试切换其他节点。
@@ -241,6 +245,22 @@ cp config.yaml config.yaml.backup.$(date +%Y%m%d)
 cd /home/clash
 cp config.yaml.backup.20231201 config.yaml
 ```
+
+---
+
+## 15. 更新记录
+
+### 2025年1月14日 - 端口配置优化
+- **重要变更**：控制端口从 9919 改为 5000
+- **原因**：解决与 dify-on-wechat 项目的端口冲突
+- **影响**：所有 API 访问和 SSH 隧道需要使用新端口 5000
+- **配置文件**：`external-controller: '127.0.0.1:5000'`
+
+### 端口使用情况
+- **5000**：Clash Dashboard 控制端口（当前使用）
+- **7890**：Clash 代理端口（TCP/UDP）
+- **9919**：预留给 dify-on-wechat 项目  
+- **9001**：预留给 CapCutAPI 服务
 
 ---
 
